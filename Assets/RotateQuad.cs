@@ -1,18 +1,29 @@
 
 using UnityEngine;
+using UnityEngine.Pool;
 
 
 public class RotateQuad : MonoBehaviour
 {
-    private Vector3 mousePos;
-    private Vector3 objectPos;
-    private float angle;
-    public Camera mainCamera;
+    private Camera myCamera;
+    private Vector3 screenPos;
+    private float angleObj;
+    private Collider2D col;
 
-    void Update()
+    private void Awake()
     {
-        mousePos = Input.mousePosition;
-        Ray ray = mainCamera.ScreenPointToRay(mousePos);
+        myCamera = Camera.main;
+    }
+
+    private void Start()
+    {
+        col = GetComponent<Collider2D>();
+    }
+
+    private void Update()
+    {
+        
+        Ray ray = myCamera.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
         if (Input.GetMouseButton(0))
         {
@@ -20,15 +31,34 @@ public class RotateQuad : MonoBehaviour
             {
                 if (hit.collider.gameObject.tag == "Object")
                 {
-                    Debug.DrawRay(ray.origin, ray.direction * 20, Color.red);
-                    objectPos = Camera.main.WorldToScreenPoint(transform.position);
-                    mousePos.x = mousePos.x - objectPos.x;
-                    mousePos.y = mousePos.y - objectPos.y;
-                    angle = Mathf.Atan2(mousePos.y, mousePos.x) * Mathf.Rad2Deg;
-                    transform.rotation = Quaternion.Euler(new Vector3(0, 0, angle));
+                    RotateObject();
                 }
             }
-        }    
+        }
+
+
+    }
+    void RotateObject()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            if (col == Physics2D.OverlapPoint(Input.mousePosition))
+            {
+                screenPos = myCamera.WorldToScreenPoint(transform.position);
+                Vector3 vec3 = Input.mousePosition - screenPos;
+                angleObj = (Mathf.Atan2(transform.right.y, transform.right.x) - Mathf.Atan2(vec3.y, vec3.x)) * Mathf.Rad2Deg;
+            }
+        }
+
+        if (Input.GetMouseButton(0))
+        {
+            if (col == Physics2D.OverlapPoint(Input.mousePosition))
+            {
+                Vector3 vec3 = Input.mousePosition - screenPos;
+                float angle = Mathf.Atan2(vec3.y, vec3.x) * Mathf.Rad2Deg;
+                transform.eulerAngles = new Vector3(0, 0, angle + angleObj);
+            }
+        }
     }
 
 }
